@@ -95,27 +95,49 @@ public class XMLConfigBuilder extends BaseBuilder {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
+    // parser是XPathParser解析器对象，读取节点内数据，<configuration>是mybatis配置文件中的顶层标签
+    // 解析XML configuration节点
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
 
+  /**
+   * 解析XML
+   *
+   * 具体Mybatis有哪些标签，参见《XML映射配置文件》http://www.mybatis.org/mybatis-3/zh/configuration.html
+   *
+   * @param root 根节点
+   */
   private void parseConfiguration(XNode root) {
     try {
       //issue #117 read properties first
+      // 解析<properties />标签
       propertiesElement(root.evalNode("properties"));
+      // 解析<settings />标签
       Properties settings = settingsAsProperties(root.evalNode("settings"));
+      // 加载自定义的 VFS实现类
       loadCustomVfs(settings);
       loadCustomLogImpl(settings);
+      // 解析<typeAliases />标签
       typeAliasesElement(root.evalNode("typeAliases"));
+      // 解析<plugins />标签
       pluginElement(root.evalNode("plugins"));
+      // 解析<objectFactory />标签
       objectFactoryElement(root.evalNode("objectFactory"));
+      // 解析<objectWrapperFactory />标签
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      // 解析<reflectorFactory />标签
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      // 赋值<setting />到Configuration属性
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+      // 解析<environments />标签
       environmentsElement(root.evalNode("environments"));
+      // 解析<databaseIdProvider />标签
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      // 解析<typeHandlers />标签
       typeHandlerElement(root.evalNode("typeHandlers"));
+      // 解析<mappers />标签
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -218,6 +240,14 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 1.解析<properties />标签成Properties对象。
+   * 2.覆盖configuration中的Properties对象到上面的结果。
+   * 3.设置结果到parser和configuration中
+   *
+   * @param context 节点
+   * @throws Exception 解析发生异常
+   */
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
       Properties defaults = context.getChildrenAsProperties();
